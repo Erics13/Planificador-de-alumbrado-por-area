@@ -73,16 +73,11 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
   const LuminariaLabelClass = useRef<any>(null);
 
   // Refs for callbacks to prevent re-initialization of the map for some listeners
-  const onPolygonCompleteRef = useRef(onPolygonComplete);
   const onRectangleCompleteRef = useRef(onRectangleComplete);
   const onZoomChangeRef = useRef(onZoomChange);
   const onMapClickRef = useRef(onMapClick);
   const isAddingLuminariaModeRef = useRef(isAddingLuminariaMode);
 
-  useEffect(() => {
-    onPolygonCompleteRef.current = onPolygonComplete;
-  }, [onPolygonComplete]);
-  
   useEffect(() => {
     onRectangleCompleteRef.current = onRectangleComplete;
   }, [onRectangleComplete]);
@@ -259,14 +254,6 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
     dm.setMap(map);
     drawingManagerInstance.current = dm;
 
-    const polyListener = google.maps.event.addListener(dm, 'polygoncomplete', (poly: google.maps.Polygon) => {
-      if (dm.getDrawingMode() === google.maps.drawing.OverlayType.POLYGON) {
-        dm.setDrawingMode(null);
-        poly.setMap(null); 
-        onPolygonCompleteRef.current(poly);
-      }
-    });
-
     const rectListener = google.maps.event.addListener(dm, 'rectanglecomplete', (rect: google.maps.Rectangle) => {
       const bounds = rect.getBounds();
       if (bounds) {
@@ -286,11 +273,28 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
 
     return () => {
         zoomListener.remove();
-        polyListener.remove();
         rectListener.remove();
         mapClickListener.remove();
     };
   }, []);
+
+  // Effect to manage polygon completion listener separately for robustness
+  useEffect(() => {
+    if (!drawingManagerInstance.current) return;
+    const dm = drawingManagerInstance.current;
+
+    const polyListener = google.maps.event.addListener(dm, 'polygoncomplete', (poly: google.maps.Polygon) => {
+      if (dm.getDrawingMode() === google.maps.drawing.OverlayType.POLYGON) {
+        dm.setDrawingMode(null);
+        poly.setMap(null); 
+        onPolygonComplete(poly); // Direct call to the prop
+      }
+    });
+
+    return () => {
+      polyListener.remove();
+    };
+  }, [onPolygonComplete]);
 
   // Effect to manage map cursor based on active mode
   useEffect(() => {
