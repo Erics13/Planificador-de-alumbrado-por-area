@@ -73,11 +73,16 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
   const LuminariaLabelClass = useRef<any>(null);
 
   // Refs for callbacks to prevent re-initialization of the map for some listeners
+  const onPolygonCompleteRef = useRef(onPolygonComplete);
   const onRectangleCompleteRef = useRef(onRectangleComplete);
   const onZoomChangeRef = useRef(onZoomChange);
   const onMapClickRef = useRef(onMapClick);
   const isAddingLuminariaModeRef = useRef(isAddingLuminariaMode);
 
+  useEffect(() => {
+    onPolygonCompleteRef.current = onPolygonComplete;
+  }, [onPolygonComplete]);
+  
   useEffect(() => {
     onRectangleCompleteRef.current = onRectangleComplete;
   }, [onRectangleComplete]);
@@ -258,7 +263,7 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
       if (dm.getDrawingMode() === google.maps.drawing.OverlayType.POLYGON) {
         dm.setDrawingMode(null);
         poly.setMap(null); 
-        onPolygonComplete(poly);
+        onPolygonCompleteRef.current(poly);
       }
     });
 
@@ -285,7 +290,7 @@ const MapContainer = forwardRef<MapContainerHandles, MapContainerProps>(({
         rectListener.remove();
         mapClickListener.remove();
     };
-  }, [onPolygonComplete]);
+  }, []);
 
   // Effect to manage map cursor based on active mode
   useEffect(() => {
