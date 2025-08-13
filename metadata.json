@@ -1,0 +1,6 @@
+{
+  "name": "Planificador de Alumbrado por Área Avanzado",
+  "description": "Una aplicación web para planificar la instalación de alumbrado público. Permite dibujar un área en un mapa, identificar calles, generar automáticamente la ubicación de luminarias, asignar fases eléctricas y exportar los datos a formatos como Excel, PDF y SHP.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
